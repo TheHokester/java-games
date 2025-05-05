@@ -105,10 +105,14 @@ public class ChestGame extends AbstractGame {
 
         int index = 0;
         for(Chest c : chests) {
+            boolean isHovered = (
+                    hoverX >= c.x && hoverX <= c.x + CHEST_WIDTH &&
+                            hoverY >= c.y && hoverY <= c.y + CHEST_HEIGHT
+            );
+           c.printChest(c.isClicked(clickX,clickY), isHovered);
            if(c.isClicked(clickX,clickY) && !c.searched) {
                 chestClicked(c);
            }
-           c.printChest(c.isClicked(clickX,clickY), c.isHovered(engine));
            index++;
         }
 

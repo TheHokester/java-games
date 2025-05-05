@@ -26,7 +26,7 @@ public class Chest {
         this.searched = false;
         this.animation = new AbstractGame.AnimationInfo();
         this.gc = gc;
-        color = (content == Content.MIMIC_KILLER) ? Color.GOLD : Color.SADDLEBROWN;
+        color = (this.content == Content.MIMIC_KILLER) ? Color.GOLD : Color.SADDLEBROWN;
     }
     enum Content {
         EMPTY('.'),
@@ -55,28 +55,25 @@ public class Chest {
             EnumSet.of(Content.MIMIC, Content.KILLED);
 
     public void printChest(boolean clicked, boolean hovered) {
-        if ((clicked && !searched) || animation.state.equals("opening")) {
+        if(content == Content.MIMIC_KILLER) color = Color.GOLD;
+        if((clicked && !searched)) {
+           animation.time = 0;
             openChestAnimation();
-            return;
-        }
-        if (!animation.isRunning && searched) {
-            openedChest();
-            return;
-        }
-        if (hovered && animation.state.equals("closed") || animation.state.equals("hovering")) {
-            hoverAnimation();
-            return;
-        }
-        if (animation.state.equals("hovered") || animation.state.equals("hovering") || animation.state.equals("unhovering")) {
-            unHoverAnimation();
-            return;
-        }
-        if (animation.state.equals("hovered")) {
+        } else if(hovered && animation.state.equals("hovered") && !searched) {
             chestHover();
-            return;
+        } else if(hovered && !searched) {
+            hoverAnimation();
+        } else if(!hovered && !searched &&(animation.state.equals("hovered")  || animation.state.equals("hovering") || animation.state.equals("unhovering"))) {
+            unHoverAnimation();
+        }else if(animation.state.equals("opened") && searched) {
+            openedChest();
+        } else if(!searched) {
+            chestGraphic();
+        } else if((animation.state.equals("opening"))) {
+            openChestAnimation();
         }
-        chestGraphic();
     }
+
     public boolean isHovered(GameEngine engine) {
         double hoverX = engine.getMouseX();
         double hoverY = engine.getMouseY();
@@ -159,7 +156,7 @@ public class Chest {
         gc.fillOval(x + 14, y + 8, 2, 2);                   // keyhole
     };
     private void openedChest() {
-        if (content.isMimic()) mimicSprite(content == Content.MIMIC);
+        if (content == Content.MIMIC || content == Content.KILLED) mimicSprite(content == Content.MIMIC);
         else {
 
 
@@ -290,8 +287,8 @@ public class Chest {
     }
     private void mimicSprite( boolean isAlive) {
 
-        Color bodyColor = Color.SADDLEBROWN;
-        Color frameColor = bodyColor.darker();
+
+        Color frameColor = color.darker();
 
         chestBottom();
 
@@ -329,13 +326,13 @@ public class Chest {
                 new double[] {y+8, y+7, y+7, y+8},
                 4
         );
-        gc.setFill(bodyColor);
+        gc.setFill(color);
         gc.fillPolygon(
                 new double[] {x+4, x+6, x+24, x+26},
                 new double[] {y-13, y-15, y-15, y-13},
                 4
         );
-        gc.setFill(bodyColor.brighter());
+        gc.setFill(color.brighter());
         gc.fillPolygon(
                 new double[] {x+5, x+6, x+24, x+25},
                 new double[] {y-14, y-15, y-15, y-14},
@@ -353,7 +350,7 @@ public class Chest {
         gc.fillRect(x + 22, y + 4, 4, 3);
 
         //teeth
-        mimicTeethTopRow(1);
+        mimicTeethTopRow(y-2-29*Math.sin(Math.toRadians(45)),1);
         //bottom row
         mimicTeethBottomRow(1);
         //top row
@@ -398,7 +395,7 @@ public class Chest {
             gc.strokeLine(x-4,y+3,x+4,y-3);
         }
     }
-    private void mimicTeethTopRow(double scale) {
+    private void mimicTeethTopRow(double y, double scale) {
         y+=20;
         mimicTooth(x+2,y-11,false,0.5,scale*2);
         mimicTooth(x+28,y-11,false,-0.5,scale*2);
@@ -467,46 +464,58 @@ public class Chest {
         }
     }
     private void openChestAnimation() {
-        double lengthTime = 916_666_667; // total duration in nanoseconds
-
         if (animation.time == 0) {
             animation.startTime = System.nanoTime();
             animation.isRunning = true;
             animation.state = "opening";
-            if (content.isMimic()) {
-                mimicChestAnimation(); // defer to mimic animation
-                return;
-            }
         }
+        if (content.isMimic()) {
+            mimicChestAnimation(); // defer to mimic animation
+            return;
+        }
+        double lengthTime = 916_666_667; // total duration in nanoseconds
+
 
         animation.time = System.nanoTime() - animation.startTime;
         double progress = Math.min(animation.time / lengthTime, 1.0);
-
+        double frameTime = lengthTime/110;
+        double pseudoFrame = 110*progress;
         // Lid angle (0.0 to 1.0 mapped to 15 to 165 degrees)
-        double lidAngle = 15 + 150 * Math.min(progress, 50.0 / 110.0); // stabilize after frame 50
+
         chestBottom();
-        chestLid( lidAngle, false);
+        if(animation.time <=50* frameTime) {
+            chestLid(15 +150 * (animation.time/lengthTime*(11/5)), false );
+        } else {
+            chestLid(165,false);
+        }
         chestLock();
 
         // Token animation: mimics frame-based behavior using progress
-        int pseudoFrame = (int)(progress * 110);
+        //token will do 1 rotation at 30/F, 12F total
+        //1 rotation at 24/F, 15F, 27F total
+        //0.5 rotation at 18/F, 10F, 37F total
+        //0.5 rotation at 12/F, 15F, 52F total
+        //0.5 rotation at 10/F, 18F, 70F total
+        //0.33 rotation at 6/F, 20F, 90F total
+        //0.16 rotation at 3/F, 20F, 110F total
+        //start from 25th frame
         Color tokenColor = (content == Content.MIMIC_KILLER) ? Color.GOLD : Color.DARKGRAY;
-        int angle;
-        if (pseudoFrame <= 12) {
-            chestToken(x + 15, y + 2 - pseudoFrame,  pseudoFrame * 30);
-        } else if (pseudoFrame <= 27) {
+        double angle;
+        if (animation.time <=12* frameTime) {
+            chestToken(x + 15, y + 2 - frameTime,  frameTime * 30);
+        } else if (animation.time <= 27* frameTime) {
             angle = pseudoFrame * 24;
             chestToken(x + 15, y - 10, angle);
-        } else if (pseudoFrame <= 37) {
+        } else if (animation.time <= 37* frameTime) {
             angle = 180 + pseudoFrame * 12;
             chestToken(x + 15, y - 10, angle);
-        } else if (pseudoFrame <= 52) {
+        } else if (animation.time <= 52* frameTime) {
             angle = 180 + pseudoFrame * 12;
             chestToken(x + 15, y - 10, angle);
-        } else if (pseudoFrame <= 70) {
+        } else if (animation.time <= 70* frameTime) {
             angle = pseudoFrame * 10;
             chestToken(x + 15, y - 10, angle);
-        } else if (pseudoFrame <= 90) {
+        } else if (animation.time <= 90* frameTime) {
             angle = 180 + pseudoFrame * 6;
             chestToken(x + 15, y - 10, angle);
         } else {
@@ -524,37 +533,33 @@ public class Chest {
     private void mimicChestAnimation() {
         double lengthTime = (content == Content.KILLED) ? 500_000_000 : 250_000_000;
 
-        if (animation.time == 0) {
-            animation.startTime = System.nanoTime();
-            animation.isRunning = true;
-            animation.state = "opening";
-        }
+
 
         animation.time = System.nanoTime() - animation.startTime;
         double progress = Math.min(animation.time / lengthTime, 1.0);
-        int pseudoFrame = (int)(progress * ((content == Content.KILLED) ? 60 : 30));
+        double frameTime = lengthTime/((content == Content.KILLED) ? 60 : 30);
+        double pseudoFrame = (int)(progress * ((content == Content.KILLED) ? 60 : 30));
 
         chestBottom();
-
-        if (pseudoFrame <= 30) {
+        if (animation.time <= 250000000) {
             double lidAngle = 15 + pseudoFrame;
             double lift = (double)pseudoFrame / 15;
             double teethY = y - lift - 29 * Math.sin(Math.toRadians(lidAngle));
-            double eyeProgress = (double)pseudoFrame / 30;
+            double scale = (double)pseudoFrame / 30;
 
             chestLid(lidAngle, true);
             chestLock();
-            mimicTeethTopRow(eyeProgress);
-            mimicTeethBottomRow(eyeProgress);
-            mimicEye(x + 8, y - 18,  true, eyeProgress);
-            mimicEye(x + 22, y - 18,  true, eyeProgress);
+            mimicTeethTopRow(teethY,scale);
+            mimicTeethBottomRow(scale);
+            mimicEye(x + 8, y - 18,  true, scale);
+            mimicEye(x + 22, y - 18,  true, scale);
         } else {
             chestLid(45, true);
             chestLock();
-            mimicTeethTopRow(1);
+            mimicTeethTopRow(y-2-29*Math.sin(Math.toRadians(45)),1);
             mimicTeethBottomRow(1);
 
-            int offset = pseudoFrame - 30;
+            double offset = pseudoFrame - 30;
             double gravity = 0.2 * Math.pow(offset, 2);
             mimicEye(x + 8 - offset, y - 18 + gravity,  true, 1);
             mimicEye(x + 22 + offset, y - 18 + gravity,  true, 1);
@@ -566,8 +571,4 @@ public class Chest {
             animation.time = 0;
         }
     }
-
-
-
-
 }
