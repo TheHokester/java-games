@@ -3,6 +3,7 @@ package com.hoke.games.engine;
 
 import com.hoke.games.gameLib.blackJack.BlackJack;
 import com.hoke.games.gameLib.chests.ChestGame;
+import com.hoke.games.gameLib.poker.Poker;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
@@ -19,6 +20,7 @@ public class MainMenu extends VBox {
         Button blackJackButton = new Button("Play BlackJack");
         Button exitButton = new Button("Exit");
         Button chestGameButton = new Button("Play Chest Game");
+        Button pokerButton = new Button("Play Poker");
 
         blackJackButton.setOnAction(e ->{
             GameEngine engine = new GameEngine(new BlackJack());
@@ -30,10 +32,15 @@ public class MainMenu extends VBox {
             Scene scene = new Scene(engine);
             primaryStage.setScene(scene);
         });
+        pokerButton.setOnAction(e ->{
+            GameEngine engine = new GameEngine(new Poker());
+            Scene scene = new Scene(engine);
+            primaryStage.setScene(scene);
+        });
         exitButton.setOnAction(e ->{
             primaryStage.close();
         });
 
-        getChildren().addAll(blackJackButton, chestGameButton, exitButton);
+        getChildren().addAll(blackJackButton, chestGameButton, pokerButton, exitButton);
     }
 }

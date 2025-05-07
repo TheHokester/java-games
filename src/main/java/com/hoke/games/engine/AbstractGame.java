@@ -3,6 +3,7 @@ package com.hoke.games.engine;
 import com.hoke.games.gameLib.blackJack.BlackJack;
 import com.hoke.games.gameLib.chests.ChestGame;
 
+import com.hoke.games.gameLib.poker.Poker;
 import com.hoke.games.launcher.MainLauncher;
 import javafx.scene.Scene;
 import javafx.scene.canvas.GraphicsContext;
@@ -84,6 +85,7 @@ public abstract class AbstractGame implements Game {
         gc.fillText("Main Menu", 100, 50);
         gc.fillText("BlackJack", 300, 50);
         gc.fillText("Chest Game", 500, 50);
+        gc.fillText("Poker", 700, 50);
     }
 
     protected void handleNavClick(double x) {
@@ -97,6 +99,10 @@ public abstract class AbstractGame implements Game {
             MainLauncher.getPrimaryStage().setScene(gameScene);
         } else if(x < 600) {
             GameEngine engine = new GameEngine(new ChestGame());
+            Scene gameScene = new Scene(engine, 1280, 720);
+            MainLauncher.getPrimaryStage().setScene(gameScene);
+        } else if(x < 800) {
+            GameEngine engine = new GameEngine(new Poker());
             Scene gameScene = new Scene(engine, 1280, 720);
             MainLauncher.getPrimaryStage().setScene(gameScene);
         }

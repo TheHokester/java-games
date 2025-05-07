@@ -26,8 +26,8 @@ public class BlackJack extends AbstractGame {
     private static final int TABLE_HEIGHT = 300;
     private static final int TABLE_ARC = 40;
     private static final int SIDE_TABLE_WIDTH = 150;
-    private static final int SIDE_TABLE_CENTRE_X = TABLE_X+TABLE_WIDTH + SIDE_TABLE_WIDTH/2;
-    private static final int SIDE_TABLE_CENTRE_Y = TABLE_Y+TABLE_HEIGHT/2;
+    private static final int SIDE_TABLE_CENTRE_X = TABLE_X+TABLE_WIDTH + SIDE_TABLE_WIDTH/2 - (int)(0.75*Card.BACK_RED.getImage().getWidth()/2);
+    private static final int SIDE_TABLE_CENTRE_Y = TABLE_Y+TABLE_HEIGHT/2 - (int)(0.75*Card.BACK_RED.getImage().getHeight()/2);
     private static boolean initialDraw = false;
     private static boolean drawActive = false;
     public static boolean dealerDrawActive = false;
@@ -47,15 +47,16 @@ public class BlackJack extends AbstractGame {
 
     public BlackJack() {
         this.result = GameResult.INPROGRESS;
-        this.animationStartTime = -1L;
+        this.animationStartTime = -1;
         this.STAGGER_NS = 50000000L;
-        this.DRAW_DURATION_NS = 500000000L;
-        this.FLIP_DURATION_NS = 300000000L;
-        this.dealerCardDrawStartTime = -1L;
+        this.DRAW_DURATION_NS = 500_000_000;
+        this.FLIP_DURATION_NS = 300_000_000;
+        this.dealerCardDrawStartTime = -1;
         this.dealerDrawIndex = 2;
     }
 
     public void start(GraphicsContext gc) {
+
         initialDraw = true;
         drawActive = false;
         dealerDrawActive = false;
@@ -97,8 +98,8 @@ public class BlackJack extends AbstractGame {
                 }
 
                 dealerDrawActive = true;
-                int playerValue = this.player.handValue();
-                int dealerValue = this.dealer.handValue();
+                int playerValue = player.handValue();
+                int dealerValue = dealer.handValue();
                 if (dealerValue <= 21 && playerValue <= dealerValue) {
                     if (playerValue < dealerValue) {
                         this.result = GameResult.LOSS;
@@ -114,17 +115,17 @@ public class BlackJack extends AbstractGame {
     }
 
     protected void renderGame(GraphicsContext gc) {
-        this.mouseX = this.engine.getMouseX();
-        this.mouseY = this.engine.getMouseY();
+        mouseX = engine.getMouseX();
+        mouseY = engine.getMouseY();
         this.drawButtons(gc);
         this.drawTable(gc);
         if (initialDraw) {
-            this.initialCardDeal(gc, this.player.hand, this.dealer.hand);
+            this.initialCardDeal(gc, player.hand, dealer.hand);
         } else if (dealerDrawActive) {
             this.dealerCardDrawAnimation(gc);
             this.drawPlayerHand(gc);
         } else if (drawActive) {
-            this.shiftAndDrawCard(gc, this.player.hand, this.getPlayerCardY());
+            this.shiftAndDrawCard(gc, player.hand, getPlayerCardY());
             this.drawDealerHand(gc);
         } else {
             this.drawPlayerHand(gc);
@@ -133,13 +134,13 @@ public class BlackJack extends AbstractGame {
 
         gc.setFill(Color.BLACK);
         gc.setFont(new Font((double)18.0F));
-        if (this.result != GameResult.INPROGRESS) {
-            int var10001 = this.player.handValue();
-            gc.fillText("Player: " + var10001, (double)50.0F, (double)100.0F);
-            var10001 = this.dealer.handValue();
-            gc.fillText("Dealer: " + var10001, (double)50.0F, (double)130.0F);
-            gc.setFill(this.result == GameResult.WIN ? Color.GREEN : Color.RED);
-            gc.fillText("Result: " + this.result.name(), (double)50.0F, (double)160.0F);
+        if (result != GameResult.INPROGRESS) {
+            int value = player.handValue();
+            gc.fillText("Player: " + value, 50.0, 100.0);
+            value = dealer.handValue();
+            gc.fillText("Dealer: " + value, 50.0, 130.0);
+            gc.setFill(result == GameResult.WIN ? Color.GREEN : Color.RED);
+            gc.fillText("Result: " + result.name(), 50.0, 160.0);
         }
 
     }
@@ -180,6 +181,9 @@ public class BlackJack extends AbstractGame {
 
 
     private void drawTable(GraphicsContext gc) {
+        Card sideDeckCard = Card.BACK_RED;
+        sideDeckCard.x = SIDE_TABLE_CENTRE_X;
+        sideDeckCard.y = SIDE_TABLE_CENTRE_Y;
         // Main table border (black outline)
         gc.setFill(Color.BLACK);
         gc.fillRoundRect(TABLE_X - 4, TABLE_Y - 4, TABLE_WIDTH + 8, TABLE_HEIGHT + 8, TABLE_ARC + 4, TABLE_ARC + 4);
@@ -190,34 +194,36 @@ public class BlackJack extends AbstractGame {
 
         // Side table border (black outline)
         gc.setFill(Color.BLACK);
-        gc.fillRoundRect(SIDE_TABLE_CENTRE_X - (SIDE_TABLE_WIDTH / 2) - 4, TABLE_Y - 4, SIDE_TABLE_WIDTH + 8, TABLE_HEIGHT + 8, TABLE_ARC + 4, TABLE_ARC + 4);
+        gc.fillRoundRect(TABLE_X+TABLE_WIDTH , TABLE_Y - 4, SIDE_TABLE_WIDTH + 8, TABLE_HEIGHT + 8, TABLE_ARC + 4, TABLE_ARC + 4);
 
         // Side table surface (green center)
         gc.setFill(Color.DARKGREEN);
         gc.fillRoundRect(
-                SIDE_TABLE_CENTRE_X - (SIDE_TABLE_WIDTH / 2), TABLE_Y, SIDE_TABLE_WIDTH, TABLE_HEIGHT, TABLE_ARC, TABLE_ARC);
+                TABLE_X+ TABLE_WIDTH +4, TABLE_Y, SIDE_TABLE_WIDTH, TABLE_HEIGHT, TABLE_ARC, TABLE_ARC);
 
         // Labels
         gc.setFill(Color.WHITE);
         gc.setFont(new Font(16));
-        gc.fillText("PLAYER", TABLE_X + 30, TABLE_Y + TABLE_HEIGHT + 20);
+        gc.fillText("PLAYER", TABLE_X + 30, TABLE_Y + TABLE_HEIGHT - 36);
         gc.fillText("DEALER", TABLE_X + 30, TABLE_Y + 40);
+        //side card
+        sideDeckCard.drawCard(gc,0.75,0.75);
     }
 
 
     private void drawPlayerHand(GraphicsContext gc) {
-        double height = this.deck.get(0).getImage().getHeight();
+        double height = deck.get(0).getImage().getHeight();
         double scale = 0.75;
         double cardSpacing = 80.0 * scale;
 
         // Center horizontally in the main table area
-        double playerX = TABLE_X + (TABLE_WIDTH / 2.0) - (cardSpacing * this.player.hand.size() / 2.0);
+        double playerX = TABLE_X + (TABLE_WIDTH / 2.0) - (cardSpacing * player.hand.size() / 2.0);
 
         // Position above bottom of table, with padding
         double playerY = TABLE_Y + TABLE_HEIGHT - (scale * height) - 30.0;
 
         int i = 0;
-        for (Card card : this.player.hand) {
+        for (Card card : player.hand) {
             card.x = playerX + i * cardSpacing;
             card.y = playerY;
             card.drawCard(gc, scale, scale);
@@ -230,17 +236,17 @@ public class BlackJack extends AbstractGame {
         double cardSpacing = 80.0 * scale;
 
         // Center horizontally in the main table area
-        double dealerX = TABLE_X + (TABLE_WIDTH / 2.0) - (cardSpacing * this.dealer.hand.size() / 2.0);
+        double dealerX = TABLE_X + (TABLE_WIDTH / 2.0) - (cardSpacing * dealer.hand.size() / 2.0);
 
         // Dealer cards are drawn near the top of the table
         double dealerY = TABLE_Y + 30.0;
 
         int j = 0;
-        for (Card card : this.dealer.hand) {
+        for (Card card : dealer.hand) {
             card.x = dealerX + j * cardSpacing;
             card.y = dealerY;
 
-            if (j == 1 && this.dealer.hand.size() == 2 && this.result == GameResult.INPROGRESS) {
+            if (j == 1 && dealer.hand.size() == 2 && result == GameResult.INPROGRESS) {
                 card.drawBack(gc, scale, scale, "RED");
             } else {
                 card.drawCard(gc, scale, scale);
@@ -255,41 +261,41 @@ public class BlackJack extends AbstractGame {
     }
 
     private void initialCardDeal(GraphicsContext gc, List<Card> playerHand, List<Card> dealerHand) {
-        if (this.animationStartTime < 0L) {
+        if (this.animationStartTime < 0) {
             this.animationStartTime = System.nanoTime();
         }
 
-        long time = System.nanoTime() - this.animationStartTime;
-        int totalCards = this.player.hand.size() + this.dealer.hand.size();
+        long time = System.nanoTime() - animationStartTime;
+        int totalCards = player.hand.size() + dealer.hand.size();
 
         for(int i = 0; i < totalCards; ++i) {
-            Card card = i < 2 ? (Card)this.player.hand.get(i) : (Card)this.dealer.hand.get(i - 2);
-            long drawStartTime = (long)i * this.STAGGER_NS;
+            Card card = i < 2 ? player.hand.get(i) : dealer.hand.get(i - 2);
+            long drawStartTime = i * STAGGER_NS;
             if (time >= drawStartTime) {
                 long elapsed = time - drawStartTime;
                 double xTo;
                 double yTo;
                 if (i < 2) {
-                    xTo = this.getCardX(i, this.player.hand.size());
-                    yTo = this.getPlayerCardY();
+                    xTo = getCardX(i, player.hand.size());
+                    yTo = getPlayerCardY();
                 } else {
-                    xTo = this.getCardX(i - 2, this.dealer.hand.size());
-                    yTo = this.getDealerCardY();
+                    xTo = getCardX(i - 2, dealer.hand.size());
+                    yTo = getDealerCardY();
                 }
 
-                if (elapsed < 500000000L) {
-                    card.cardDrawAnimation((double)875.0F, (double)300.0F, xTo, yTo, gc, (double)0.75F, (double)0.75F);
-                } else if (elapsed < 800000000L) {
+                if (elapsed < DRAW_DURATION_NS) {
+                    card.cardDrawAnimation(SIDE_TABLE_CENTRE_X, SIDE_TABLE_CENTRE_Y, xTo, yTo, gc, 0.75, 0.75);
+                } else if (elapsed < DRAW_DURATION_NS + FLIP_DURATION_NS) {
                     card.x = xTo;
                     card.y = yTo;
                     if (i < 3) {
-                        card.cardFlipAnimation(gc, (double)0.75F, (double)0.75F);
+                        card.cardFlipAnimation(gc, 0.75, 0.75);
                     } else {
-                        card.drawBack(gc, (double)0.75F, (double)0.75F, "RED");
+                        card.drawBack(gc, 0.75, 0.75, "RED");
                     }
                 } else {
                     initialDraw = false;
-                    this.animationStartTime = -1L;
+                    animationStartTime = -1L;
                 }
             }
         }
@@ -297,21 +303,21 @@ public class BlackJack extends AbstractGame {
     }
 
     private void shiftAndDrawCard(GraphicsContext gc, List<Card> hand, double yTo) {
-        if (this.animationStartTime < 0L) {
-            this.animationStartTime = System.nanoTime();
+        if (animationStartTime < 0L) {
+            animationStartTime = System.nanoTime();
         }
 
         long time = System.nanoTime();
 
         for(int i = 0; i < hand.size(); ++i) {
-            Card card = (Card)hand.get(i);
-            long elapsed = time - this.animationStartTime;
-            double xTo = this.getCardX(i, this.player.hand.size());
-            if (elapsed <= 500000000L) {
+            Card card = hand.get(i);
+            long elapsed = time - animationStartTime;
+            double xTo = getCardX(i, hand.size());
+            if (elapsed <= 500_000_000) {
                 if (i == hand.size() - 1) {
-                    card.cardDrawAnimation((double)875.0F, (double)300.0F, xTo, yTo, gc, (double)0.75F, (double)0.75F);
+                    card.cardDrawAnimation(SIDE_TABLE_CENTRE_X, SIDE_TABLE_CENTRE_Y, xTo, yTo, gc, 0.75, 0.75);
                 } else {
-                    card.cardDrawAnimation(this.getCardX(i, this.player.hand.size() - 1), card.y, xTo, yTo, gc, (double)0.75F, (double)0.75F);
+                    card.cardDrawAnimation(getCardX(i, hand.size() - 1), card.y, xTo, yTo, gc, 0.75, (double)0.75F);
                 }
             } else if (elapsed <= 810000000L) {
                 if (i == hand.size() - 1) {
