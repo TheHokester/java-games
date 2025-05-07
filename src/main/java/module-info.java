@@ -8,6 +8,7 @@ module com.hoke.games {
     requires org.kordamp.bootstrapfx.core;
     requires eu.hansolo.tilesfx;
     requires com.almasb.fxgl.all;
+    requires java.desktop;
 
 //    exports com.hoke.games;
 //    opens   com.hoke.games to javafx.fxml;
@@ -17,6 +18,8 @@ module com.hoke.games {
     opens   com.hoke.games.engine to javafx.fxml;
     exports com.hoke.games.gameLib;
     opens   com.hoke.games.gameLib to javafx.fxml;
-    exports com.hoke.games.gameLib.chests;
-    opens   com.hoke.games.gameLib.chests to javafx.fxml;
+//    exports com.hoke.games.gameLib.chests;
+//    opens   com.hoke.games.gameLib.chests to javafx.fxml;
+//    exports com.hoke.games.gameLib.blackJack;
+//    opens   com.hoke.games.gameLib.blackJack to javafx.fxml;
 }

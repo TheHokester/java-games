@@ -1,13 +1,12 @@
 package com.hoke.games.assets;
 
-import com.almasb.fxgl.input.Input;
+import com.hoke.games.engine.AbstractGame;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.io.InputStream;
+import java.util.List;
 
 
 public enum Card {
@@ -81,10 +80,10 @@ public enum Card {
             String imagePath;
             if(card.suit!=null && card.rank !=null) {
                 //Normal Cards
-                imagePath = String.format("/com/example/games/assets/cardPNGS/%s_%s.png", card.rank.shortName, card.suit.name().toLowerCase());
+                imagePath = String.format("/com/hoke/games/assets/cardPNGS/%s_%s.png", card.rank.shortName, card.suit.name().toLowerCase());
             } else {
                 //Special Cards
-                imagePath = String.format("/com/example/games/assets/cardPNGS/%s.png", card.name().toLowerCase());
+                imagePath = String.format("/com/hoke/games/assets/cardPNGS/%s.png", card.name().toLowerCase());
             }
             try (InputStream stream = Card.class.getResourceAsStream(imagePath)) {
                 if(stream != null) {
@@ -99,20 +98,78 @@ public enum Card {
         }
     }
 
+    public Image getImage() {
+        return imageMap.get(this);
+    }
+
+    public void cardDrawAnimation(double xFrom, double yFrom, double xTo, double yTo, GraphicsContext gc, double xScale, double yScale) {
+        double lengthTime = (double)5.0E8F;
+        if (this.animation.time == (double)0.0F) {
+            this.animation.isRunning = true;
+            this.animation.startTime = (double)System.nanoTime();
+            this.animation.state = "moving";
+        }
+
+        this.animation.time = (double)System.nanoTime() - this.animation.startTime;
+        this.x = xFrom + (xTo - xFrom) * this.animation.time / lengthTime;
+        this.y = yFrom + (yTo - yFrom) * this.animation.time / lengthTime;
+        if (this.flipped) {
+            this.drawBack(gc, xScale, yScale, "RED");
+        } else {
+            this.drawCard(gc, xScale, yScale);
+        }
+
+        if (this.animation.time >= lengthTime) {
+            this.animation.isRunning = false;
+            this.animation.state = "inactive";
+            this.animation.time = (double)0.0F;
+        }
+
+    }
+
+    public void cardFlipAnimation(GraphicsContext gc, double xScale, double yScale) {
+        double lengthTime = (double)3.0E8F;
+        if (this.animation.time == (double)0.0F) {
+            this.animation.isRunning = true;
+            this.animation.startTime = (double)System.nanoTime();
+            this.animation.state = "flipping";
+        }
+
+        this.animation.time = (double)System.nanoTime() - this.animation.startTime;
+        double progress = this.animation.time / (double)3.0E8F;
+        double angle = Math.PI * progress;
+        double horizontalScale = xScale * Math.abs(Math.cos(angle));
+        boolean pastHalfway = angle > (Math.PI / 2D);
+        boolean drawFront = this.flipped && !pastHalfway || !this.flipped && pastHalfway;
+        if (drawFront) {
+            this.drawCard(gc, horizontalScale, yScale);
+        } else {
+            this.drawBack(gc, horizontalScale, yScale, "RED");
+        }
+
+        if (this.animation.time >= (double)3.0E8F) {
+            this.animation.isRunning = false;
+            this.animation.time = (double)0.0F;
+            this.animation.state = "inactive";
+            this.flipped = !this.flipped;
+        }
+
+    }
+
 
     public enum Suit {
         SPADES, DIAMONDS, CLUBS, HEARTS
 
     }
     public enum Rank {
-        ACE("1"),
+        ACE("A"),
         TWO("2"),
         THREE("3"),
         FOUR("4"),
         FIVE("5"),
         SIX("6"),
-        SEVEN("6"),
-        EIGHT("7"),
+        SEVEN("7"),
+        EIGHT("8"),
         NINE("9"),
         TEN("10"),
         JACK("J"),
@@ -131,14 +188,17 @@ public enum Card {
         this.suit = suit;
         this.rank = rank;
     }
-
+    public double x;
+    public double y;
+    public boolean flipped;
+    public AbstractGame.AnimationInfo animation = new AbstractGame.AnimationInfo();
     public static Suit getSuit(Card card) {
         return card.suit;
     }
     public static Rank getRank(Card card) {
         return card.rank;
     }
-    public void drawCard(double x, double y, GraphicsContext gc, double xScale, double yScale) {
+    public void drawCard( GraphicsContext gc, double xScale, double yScale) {
         Image img = imageMap.get(this);
         if(img != null) {
             gc.drawImage(img, x, y, img.getWidth() * xScale, img.getHeight() * yScale);
@@ -146,7 +206,7 @@ public enum Card {
             System.err.println("No available Image for: " + this.name());
         }
     }
-    public void drawBack(double x, double y, GraphicsContext gc, double xScale, double yScale, String color) {
+    public void drawBack( GraphicsContext gc, double xScale, double yScale, String color) {
         Image img;
         switch (color) {
             case "BLACK":
@@ -162,4 +222,10 @@ public enum Card {
         gc.drawImage(img,x,y,img.getWidth()*xScale,img.getHeight()*yScale);
     }
 
+    public static Card newRandomCard(List<Card> deck) {
+        int index = (new Random()).nextInt(deck.size());
+        Card card = (Card)deck.get(index);
+        deck.remove(index);
+        return card;
+    }
 }
