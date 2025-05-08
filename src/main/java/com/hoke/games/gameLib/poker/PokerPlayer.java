@@ -15,4 +15,5 @@ public class PokerPlayer {
             card.flipped = true;
         }
     }
+
 }
