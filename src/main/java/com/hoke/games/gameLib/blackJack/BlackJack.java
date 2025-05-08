@@ -39,21 +39,13 @@ public class BlackJack extends AbstractGame {
     BJDealer dealer;
     AbstractGame.GameResult result;
     private long animationStartTime;
-    private long STAGGER_NS;
-    private final long DRAW_DURATION_NS;
-    private final long FLIP_DURATION_NS;
+    private static final long STAGGER_NS = 50_000_000;
+    private static final long DRAW_DURATION_NS = 500_000_000;
+    private static final long FLIP_DURATION_NS = 300_000_000;
     private long dealerCardDrawStartTime;
     private int dealerDrawIndex;
 
-    public BlackJack() {
-        this.result = GameResult.INPROGRESS;
-        this.animationStartTime = -1;
-        this.STAGGER_NS = 50000000L;
-        this.DRAW_DURATION_NS = 500_000_000;
-        this.FLIP_DURATION_NS = 300_000_000;
-        this.dealerCardDrawStartTime = -1;
-        this.dealerDrawIndex = 2;
-    }
+
 
     public void start(GraphicsContext gc) {
 
@@ -72,6 +64,9 @@ public class BlackJack extends AbstractGame {
         this.player = new BJPlayer(this.deck);
         this.dealer = new BJDealer(this.deck);
         this.result = GameResult.INPROGRESS;
+        this.animationStartTime = -1;
+        this.dealerCardDrawStartTime = -1;
+        this.dealerDrawIndex = 2;
     }
 
     protected void onGameClick(double clickX, double clickY) {

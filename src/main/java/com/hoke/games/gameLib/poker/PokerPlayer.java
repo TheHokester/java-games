@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.*;
 
 public class PokerPlayer {
-    List<Card> hand = new ArrayList<>();
+    public List<Card> hand = new ArrayList<>();
 
     PokerPlayer(List<Card> deck) {
         hand.add(Card.newRandomCard(deck));
@@ -14,6 +14,9 @@ public class PokerPlayer {
         for (Card card : hand) {
             card.flipped = true;
         }
+    }
+    public List<Card> getHand() {
+        return hand;
     }
 
 }

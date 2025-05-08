@@ -163,7 +163,7 @@ public class HandScoring {
             if (valueCount[i] >= 3) {
                 hasThreeOfAKind = true;
                 // Reduce count to avoid reusing in pair check
-                valueCount[i] -= 3;
+                valueCount[i] -= 3;//removes it from pool in the rare case of 2X 3pairs
                 break;
             }
         }
@@ -203,7 +203,7 @@ public class HandScoring {
         }
 
         int consecutive = 1;//straight determination algorithm.
-        for(int i = 0; i < values.size(); i++) {
+        for(int i = 1; i < values.size(); i++) {
             if(values.get(i) == values.get(i-1) -1) {
                 consecutive++;
                 if(consecutive == 5)  return true;
@@ -306,6 +306,47 @@ public class HandScoring {
                 consecutive = 1;
             }
         }
-        return list.get(0);
+        return list.getFirst();
+    }
+
+
+
+    public static List<List<PokerPlayer>> orderPokerPlayers(List<PokerPlayer> players, List<Card> communityCards) {// returns the list of poker players who came 1st, 2nd, 3rd ...
+        players.sort((p1, p2) -> compareHands(scoreHand(p2.getHand(), communityCards), scoreHand(p1.getHand(), communityCards)));//sorts players by best to worst hands
+        List<List<PokerPlayer>> rankedGroups = new ArrayList<>();
+        List<PokerPlayer> currentGroup = new ArrayList<>();
+
+        for(int i = 0; i < players.size(); i++) {//for player i?
+            PokerPlayer currentPlayer = players.get(i);
+
+            if(i==0) {
+                currentGroup.add(currentPlayer);//obviously empty so add to group
+            } else {
+                ScoredHand prev = scoreHand(players.get(i-1).getHand(), communityCards);//prev hand
+                ScoredHand curr = scoreHand(players.get(i).getHand(), communityCards);//curr hand
+                if(compareHands(curr,prev) == 0) {//if they are tied they get grouped
+                    currentGroup.add(currentPlayer);//tie
+                } else {
+                    rankedGroups.add(new ArrayList<>(currentGroup)); // add to rankedGroups the current group
+                    currentGroup.clear();//clear the current group
+                    currentGroup.add(currentPlayer);//add the player to that cleared group
+                }
+            }
+        }
+        if(!currentGroup.isEmpty()) {//if the current group was never added, add it to the groups
+            rankedGroups.add(currentGroup);
+        }
+        return rankedGroups;
+    }
+
+    public static int compareHands(ScoredHand a, ScoredHand b) {// returns >0 if a is better, returns <0 if b is better, returns 0 if equal
+        int typeCompare = b.handType.ordinal() - a.handType.ordinal();//compares the handtypes
+        if(typeCompare != 0) return typeCompare;
+
+        for(int i = 0; i < Math.min(a.rankingValues.size(), b.rankingValues.size()); i++){
+            int diff = a.rankingValues.get(i) - b.rankingValues.get(i);
+            if(diff != 0) return diff;
+        }
+        return 0;
     }
 }
