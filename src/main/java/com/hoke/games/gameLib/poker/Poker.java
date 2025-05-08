@@ -13,13 +13,17 @@ public class Poker extends AbstractGame {
     private static final int BOT_COUNT = 4;
     private static final int SMALL_BLIND = 5;
     private static final int BIG_BLIND = 2 * SMALL_BLIND;
+
+
+    private static final double CARD_SCALE = 0.75;
+
     private static void dealCards() {
 
     }
 
     @Override
     protected void renderGame(GraphicsContext gc) {
-
+        PokerEnvironment.drawTable();
     }
 
     @Override
@@ -32,6 +36,7 @@ public class Poker extends AbstractGame {
         communityCards.clear();
         deck.clear();
         players.clear();
+        new PokerEnvironment(gc);
         for(Card card : Card.values()) {
             if(card.suit !=null && card.rank !=null) {
                 deck.add(card);

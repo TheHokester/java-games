@@ -251,9 +251,7 @@ public class BlackJack extends AbstractGame {
         }
     }
 
-    private boolean inBounds(double px, double py, double x, double y, double w, double h) {
-        return px >= x && px <= x + w && py >= y && py <= y + h;
-    }
+
 
     private void initialCardDeal(GraphicsContext gc, List<Card> playerHand, List<Card> dealerHand) {
         if (this.animationStartTime < 0) {

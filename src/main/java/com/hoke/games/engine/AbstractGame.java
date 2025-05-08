@@ -76,6 +76,9 @@ public abstract class AbstractGame implements Game {
             onGameClick(x, y);
         }
     }
+    public boolean inBounds(double px, double py, double x, double y, double w, double h) {
+        return px >= x && px <= x + w && py >= y && py <= y + h;
+    }
 
     protected void drawNavBar(GraphicsContext gc) {
         gc.setFill(Color.GRAY);
