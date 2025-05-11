@@ -22,7 +22,7 @@ public class PokerEnvironment {
 
 
     private static final Color TABLE_COLOR = Color.DARKGREEN;
-    static GraphicsContext gc;
+    private static GraphicsContext gc;
     public PokerEnvironment(GraphicsContext gc) {
         this.gc = gc;
     }
@@ -91,6 +91,13 @@ public class PokerEnvironment {
         int startX = TABLE_CENTRE_X - totalWidth / 2;
 
         return startX + i * (frameWidth + CARD_GAP);
+    }
+
+    public static void buttonPanel() {
+
+    }
+    public static void advancedBetPanel() {
+
     }
 
 }
