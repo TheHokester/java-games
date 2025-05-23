@@ -1,6 +1,6 @@
 package com.hoke.games.gameLib.poker;
 
-import com.hoke.games.assets.Card;
+import com.hoke.games.UIAssets.Card;
 
 import java.util.*;
 

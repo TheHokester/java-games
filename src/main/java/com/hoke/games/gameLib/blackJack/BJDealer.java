@@ -5,7 +5,7 @@
 
 package com.hoke.games.gameLib.blackJack;
 
-import com.hoke.games.assets.Card;
+import com.hoke.games.UIAssets.Card;
 import java.util.List;
 
 public class BJDealer extends BJPlayer {

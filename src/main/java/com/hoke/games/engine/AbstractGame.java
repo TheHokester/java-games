@@ -12,6 +12,10 @@ import javafx.scene.paint.Color;
 public abstract class AbstractGame implements Game {
     protected boolean gameOver = false;
 
+    public static GameEngine getEngine() {
+        return engine;
+    }
+
 
     public enum GameResult {
         WIN,
@@ -54,8 +58,9 @@ public abstract class AbstractGame implements Game {
     @Override
     public void update() {
         // Default: do nothing
+
     }
-    protected GameEngine engine;
+    protected static GameEngine engine;
 
     @Override
     public void setEngine(GameEngine engine) {
@@ -76,7 +81,7 @@ public abstract class AbstractGame implements Game {
             onGameClick(x, y);
         }
     }
-    public boolean inBounds(double px, double py, double x, double y, double w, double h) {
+    public static boolean inBounds(double px, double py, double x, double y, double w, double h) {
         return px >= x && px <= x + w && py >= y && py <= y + h;
     }
 

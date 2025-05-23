@@ -5,13 +5,12 @@ public class Bet {
     public static final int BIG_BLIND = 2 * SMALL_BLIND;
     public static final int MIN_BET = 10;
 
-    private int committed;    // Total chips this player has put in this round
-    private boolean folded;
+    public int committed;    // Total chips this player has put in this round
+
     private boolean allIn;
 
     public Bet() {
         committed = 0;
-        folded = false;
         allIn = false;
     }
 
@@ -30,13 +29,10 @@ public class Bet {
         return toPay;
     }
 
-    public void fold() {
-        folded = true;
-    }
+
 
     public void resetForNextRound() {
         committed = 0;
-        folded = false;
         allIn = false;
     }
 
@@ -44,15 +40,12 @@ public class Bet {
         return committed;
     }
 
-    public boolean isFolded() {
-        return folded;
-    }
+
 
     public boolean isAllIn() {
         return allIn;
     }
 
-    public void smallBlind() {
-    }
+
 }
 

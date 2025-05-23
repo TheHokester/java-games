@@ -1,4 +1,4 @@
-package com.hoke.games.assets;
+package com.hoke.games.UIAssets;
 
 import com.hoke.games.engine.AbstractGame;
 import javafx.scene.canvas.GraphicsContext;

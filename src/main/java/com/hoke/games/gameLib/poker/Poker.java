@@ -1,6 +1,6 @@
 package com.hoke.games.gameLib.poker;
 
-import com.hoke.games.assets.Card;
+import com.hoke.games.UIAssets.Card;
 import com.hoke.games.engine.AbstractGame;
 import javafx.scene.canvas.GraphicsContext;
 
@@ -9,17 +9,19 @@ import java.util.*;
 public class Poker extends AbstractGame {
     List<Card> deck = new ArrayList<>();
     List<Card> communityCards = new ArrayList<>();
-    List<PokerPlayer> players = new ArrayList<>();
+    static List<PokerPlayer> players = new ArrayList<>();
     private static boolean roundCardDrawActive = false;
+    private static PokerEnvironment environment;
 
+    public static int round = 0;
 
-    private static int round = 0;
-    private static int roundRotation = 0;
     private static final int BOT_COUNT = 4;
 
 
 
     private static final double CARD_SCALE = 0.75;
+    private static double clickX;
+    private static double clickY;
 
     private static void dealCards(List<Card> deck, List<PokerPlayer> players) {
         for(PokerPlayer p : players) {
@@ -35,11 +37,16 @@ public class Poker extends AbstractGame {
     @Override
     protected void renderGame(GraphicsContext gc) {
         PokerEnvironment.drawTable();
+        environment.buttonPanel();
+
+        clickX = -1;
+        clickY = -1;
     }
 
     @Override
     protected void onGameClick(double x, double y) {
-
+        this.clickX = x;
+        this.clickY = y;
     }
     private void initRound() {
         communityCards.clear();
@@ -69,7 +76,7 @@ public class Poker extends AbstractGame {
     @Override
     public void start(GraphicsContext gc) {
         if(gc!=null) {
-            new PokerEnvironment(gc);
+             environment = new  PokerEnvironment(gc);
         }
         initRound();
     }
@@ -111,15 +118,26 @@ public class Poker extends AbstractGame {
     private GamePhase gamePhase = GamePhase.PREFLOP;
     private static int startPlayer = 0;//by index in players array.
     private static int turnPlayer = 0;
+    private boolean preFlopSetupDone = false;
     private boolean waitingForPlayer = false;
 
 
     public void playRound() {
         switch (gamePhase) {
             case PREFLOP:
+                if(!preFlopSetupDone) {
+                    int smallBlindIdx = startPlayer;
+                    int bigBlindIdx = (startPlayer + 1) % players.size();
+
+                    players.get(smallBlindIdx).postSmallBlind();
+                    players.get(bigBlindIdx).postBigBlind();
+
+                    preFlopSetupDone = true;
+                    turnPlayer = (bigBlindIdx+1) % players.size();
+                }
                 //Players post blinds and perform preflop betting
                 runPlayerTurn();
-                if(allPlayersActed()) {
+                if(bettingRoundComplete()) {
                     flop();
                     resetPlayerCycle();
                     gamePhase = GamePhase.FLOP;
@@ -127,7 +145,7 @@ public class Poker extends AbstractGame {
             break;
             case FLOP:
                 runPlayerTurn();
-                if(allPlayersActed()) {
+                if(bettingRoundComplete()) {
                     turn();
                     resetPlayerCycle();
                     gamePhase = GamePhase.TURN;
@@ -135,7 +153,7 @@ public class Poker extends AbstractGame {
                 break;
             case TURN:
                 runPlayerTurn();
-                if(allPlayersActed()) {
+                if(bettingRoundComplete()) {
                     river();
                     resetPlayerCycle();
                     gamePhase = GamePhase.RIVER;
@@ -143,7 +161,7 @@ public class Poker extends AbstractGame {
                 break;
             case RIVER:
                 runPlayerTurn();
-                if(allPlayersActed()) {
+                if(bettingRoundComplete()) {
                     gamePhase = GamePhase.SHOWDOWN;
                 }
                 break;
@@ -161,7 +179,8 @@ public class Poker extends AbstractGame {
 
     private void runPlayerTurn() {
         PokerPlayer player = players.get(turnPlayer);
-        if(!player.hasActed()) {
+        int maxCommitted = getMaxCommitted();
+        if(!player.hasFolded() && player.bet.committed <  maxCommitted) {
             player.takeTurn();//defined differently for bot vs player
         }
         advanceTurn();
@@ -177,9 +196,14 @@ public class Poker extends AbstractGame {
         }
         turnPlayer = startPlayer;
     }
-    private boolean allPlayersActed() {
+    private boolean bettingRoundComplete() {
+        int maxCommitted = getMaxCommitted();
         for(PokerPlayer player : players) {
-            if(!player.hasActed() && !player.hasFolded()) { return false; }
+            if(player.hasFolded() || player.bet.isAllIn()) continue;
+
+            if(!player.hasActed() || player.bet.committed <  maxCommitted) {
+                return false;
+            }
         }
         return true;
     }
@@ -191,11 +215,28 @@ public class Poker extends AbstractGame {
 
     private void resetRound() {
         round++;
-
+        preFlopSetupDone = false;
         for(PokerPlayer player : players) {
             player.resetHand();
         }
         initRound();
     }
+    private int getMaxCommitted() {
+        int maxCommitted = 0;
+        for(PokerPlayer player : players) {
+            maxCommitted = Math.max(maxCommitted, player.bet.committed);
+        }
+        return maxCommitted;
+    }
 
+    public static double getClickX() {
+        return clickX;
+    }
+    public static double getClickY() {
+        return clickY;
+    }
+
+    public static List<PokerPlayer> getPlayers() {
+        return players;
+    }
 }

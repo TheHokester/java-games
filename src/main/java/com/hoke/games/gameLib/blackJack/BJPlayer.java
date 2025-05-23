@@ -5,8 +5,8 @@
 
 package com.hoke.games.gameLib.blackJack;
 
-import com.hoke.games.assets.Card;
-import com.hoke.games.assets.Card.Rank;
+import com.hoke.games.UIAssets.Card;
+import com.hoke.games.UIAssets.Card.Rank;
 import java.util.ArrayList;
 import java.util.List;
 

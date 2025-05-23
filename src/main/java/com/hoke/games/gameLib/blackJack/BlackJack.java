@@ -5,7 +5,7 @@
 
 package com.hoke.games.gameLib.blackJack;
 
-import com.hoke.games.assets.Card;
+import com.hoke.games.UIAssets.Card;
 import com.hoke.games.engine.AbstractGame;
 
 import java.util.ArrayList;
@@ -77,7 +77,7 @@ public class BlackJack extends AbstractGame {
 
         if (this.result == GameResult.INPROGRESS) {
             // HIT button
-            if (this.inBounds(clickX, clickY, BUTTON_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT)) {
+            if (inBounds(clickX, clickY, BUTTON_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT)) {
                 this.player.hit(this.deck);
                 drawActive = true;
                 if (this.player.handValue() > 21) {
@@ -85,7 +85,7 @@ public class BlackJack extends AbstractGame {
                 }
             }
             // STAND button
-            else if (this.inBounds(clickX, clickY, BUTTON_X + BUTTON_WIDTH, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT)) {
+            else if (inBounds(clickX, clickY, BUTTON_X + BUTTON_WIDTH, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT)) {
                 this.player.stand();
 
                 while (!this.dealer.isStood()) {

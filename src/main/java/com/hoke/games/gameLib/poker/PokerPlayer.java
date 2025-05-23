@@ -1,6 +1,6 @@
 package com.hoke.games.gameLib.poker;
 
-import com.hoke.games.assets.Card;
+import com.hoke.games.UIAssets.Card;
 
 import java.util.ArrayList;
 import java.util.*;
@@ -10,9 +10,14 @@ public class PokerPlayer {
     public Bet bet = new Bet();
     private boolean acted;
     boolean folded = false;
+    private int chipBalance = 0;
 
     PokerPlayer() {
         this.folded = false;
+        chipBalance = 1000;
+    }
+    public int getBalance() {
+        return chipBalance;
     }
     public List<Card> getHand() {
         return hand;
@@ -40,5 +45,21 @@ public class PokerPlayer {
 
     public void resetHand() {
         hand.clear();
+    }
+
+    public void postSmallBlind() {
+        int toPay = Math.min(chipBalance, Bet.SMALL_BLIND);
+        bet.committed += toPay;
+        chipBalance -= toPay;
+        act();
+    }
+    public void postBigBlind() {
+        int toPay = Math.min(chipBalance, Bet.SMALL_BLIND);
+        bet.committed += toPay;
+        chipBalance -= toPay;
+        act();
+    }
+    public double getChipBalance() {
+        return chipBalance;
     }
 }
